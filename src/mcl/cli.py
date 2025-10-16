@@ -67,12 +67,16 @@ def cli(ctx: click.Context, dry_run: bool, share_vars: bool) -> None:
             return
 
         click.echo(ctx.get_help())
-        click.echo("\nTip: use `mcl run <script>` or shorthand `mcl <script> [args...]`.\n")
+        click.echo(
+            "\nTip: use `mcl run <script>` or shorthand `mcl <script> [args...]`.\n"
+        )
         try:
             config = load_config(local=True)
             global_scripts, local_scripts = extract_script_maps(config)
             local_paths = list_script_paths(local_scripts) if local_scripts else []
-            global_paths_all = list_script_paths(global_scripts) if global_scripts else []
+            global_paths_all = (
+                list_script_paths(global_scripts) if global_scripts else []
+            )
             local_set = set(local_paths)
             global_paths = [path for path in global_paths_all if path not in local_set]
 
@@ -141,4 +145,6 @@ def _configure_logging() -> None:
 
     root = logging.getLogger()
     if not root.handlers:
-        logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+        logging.basicConfig(
+            level=logging.INFO, format="%(levelname)s %(name)s: %(message)s"
+        )

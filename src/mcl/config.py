@@ -51,11 +51,7 @@ def _merge_dicts(base: MutableMapping[str, Any], override: Mapping[str, Any]) ->
     """Recursively merge ``override`` into ``base`` keeping nested dicts intact."""
 
     for key, value in override.items():
-        if (
-            key in base
-            and isinstance(base[key], dict)
-            and isinstance(value, dict)
-        ):
+        if key in base and isinstance(base[key], dict) and isinstance(value, dict):
             _merge_dicts(base[key], value)
         else:
             base[key] = value
@@ -96,10 +92,18 @@ def load_config(local: bool = False) -> Dict[str, Any]:
     if not isinstance(merged["scripts"], dict) or not isinstance(merged["vars"], dict):
         raise ValueError("Configuration keys 'scripts' and 'vars' must be objects")
 
-    global_scripts = global_data.get("scripts", {}) if isinstance(global_data.get("scripts", {}), dict) else {}
+    global_scripts = (
+        global_data.get("scripts", {})
+        if isinstance(global_data.get("scripts", {}), dict)
+        else {}
+    )
     if not isinstance(global_scripts, dict):
         global_scripts = {}
-    local_scripts = local_data.get("scripts", {}) if isinstance(local_data.get("scripts", {}), dict) else {}
+    local_scripts = (
+        local_data.get("scripts", {})
+        if isinstance(local_data.get("scripts", {}), dict)
+        else {}
+    )
     if not isinstance(local_scripts, dict):
         local_scripts = {}
 

@@ -20,7 +20,13 @@ def test_run_invokes_executor(monkeypatch: pytest.MonkeyPatch) -> None:
         calls["load_config"] = True
         return {"scripts": {"test": ["echo hi"]}, "vars": {}}
 
-    def fake_execute(config: Dict[str, Any], cmd: str, args: List[str], dry_run: bool, share_vars: bool) -> None:
+    def fake_execute(
+        config: Dict[str, Any],
+        cmd: str,
+        args: List[str],
+        dry_run: bool,
+        share_vars: bool,
+    ) -> None:
         calls["execute"] = {
             "config": config,
             "cmd": cmd,
@@ -118,7 +124,13 @@ def test_direct_script_invocation(monkeypatch: pytest.MonkeyPatch) -> None:
         calls["load_config"] = True
         return {"scripts": {"test": ["echo $1"]}, "vars": {}}
 
-    def fake_execute(config: Dict[str, Any], cmd: str, args: List[str], dry_run: bool, share_vars: bool) -> None:
+    def fake_execute(
+        config: Dict[str, Any],
+        cmd: str,
+        args: List[str],
+        dry_run: bool,
+        share_vars: bool,
+    ) -> None:
         calls["execute"] = {
             "config": config,
             "cmd": cmd,
@@ -159,14 +171,22 @@ def test_nested_script_invocation(monkeypatch: pytest.MonkeyPatch) -> None:
             "vars": {},
         }
 
-    def fake_execute(config: Dict[str, Any], cmd: str, args: List[str], dry_run: bool, share_vars: bool) -> None:
-        calls.setdefault("execute", []).append({
-            "config": config,
-            "cmd": cmd,
-            "args": args,
-            "dry_run": dry_run,
-            "share_vars": share_vars,
-        })
+    def fake_execute(
+        config: Dict[str, Any],
+        cmd: str,
+        args: List[str],
+        dry_run: bool,
+        share_vars: bool,
+    ) -> None:
+        calls.setdefault("execute", []).append(
+            {
+                "config": config,
+                "cmd": cmd,
+                "args": args,
+                "dry_run": dry_run,
+                "share_vars": share_vars,
+            }
+        )
 
     monkeypatch.setattr(cli_module, "load_config", fake_load_config)
     monkeypatch.setattr(cli_module, "execute", fake_execute)

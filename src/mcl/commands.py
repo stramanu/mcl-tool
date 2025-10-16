@@ -38,7 +38,9 @@ def list_script_paths(scripts: ScriptTree) -> List[str]:
     return sorted(paths)
 
 
-def extract_script_maps(config: Mapping[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+def extract_script_maps(
+    config: Mapping[str, Any],
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """Return global and local script dictionaries if available."""
 
     global_scripts = config.get("__global_scripts__") or {}

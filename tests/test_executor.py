@@ -50,7 +50,9 @@ def test_execute_dry_run_skips_execution(monkeypatch: pytest.MonkeyPatch) -> Non
     execute(config, "noop", ["ok"], dry_run=True, share_vars=False)
 
 
-def test_execute_share_vars_exports_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_execute_share_vars_exports_environment(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     captured: List[Any] = []
 
     def fake_run(cmd: Any, **kwargs: Any) -> None:
