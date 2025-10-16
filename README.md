@@ -18,9 +18,27 @@ A batteries-included CLI that turns JSON recipes into reusable automation script
 - **Dev friendly** – strict type hints, pytest coverage, mypy/black enforced in CI.
 
 ## Installation
+
+### macOS / Linux (virtual environment recommended)
+1. Ensure Python 3.10+ is available (`python3 --version`).
+2. If `venv` is missing, install it (e.g. `sudo apt install python3-venv` on Debian/Ubuntu or `brew install python@3.11` on macOS).
+3. Create and activate an isolated environment:
+	```bash
+	python3 -m venv ~/.venvs/mcl
+	source ~/.venvs/mcl/bin/activate
+	python -m pip install --upgrade pip
+	```
+4. Install the CLI inside the environment:
+	```bash
+	pip install mcl-tool
+	```
+
+### System-wide install via pipx
+If you prefer a standalone binary-like install, use [pipx](https://pipx.pypa.io/):
 ```bash
-pip install mcl-tool
+pipx install mcl-tool
 ```
+This keeps `mcl` isolated while exposing the command on your PATH.
 
 ## Quick Start
 1. **Initialize a project config**
