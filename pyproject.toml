@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcl-tool"
+version = "0.1.0"
+description = "My Command Line: A personal generic customizable CLI tool"
+readme = "README.md"
+authors = [{name = "Your Name", email = "your@email.com"}]
+license = {text = "MIT"}
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+]
+dependencies = [
+    "click>=8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+    "mypy",
+    "black",
+    "pre-commit",
+    "types-click",
+]
+
+[project.scripts]
+mcl = "mcl.cli:cli"
+
+[project.urls]
+Homepage = "https://github.com/yourusername/mcl-tool"
+Repository = "https://github.com/yourusername/mcl-tool"
+Documentation = "https://github.com/yourusername/mcl-tool/tree/main/docs"
+
+[tool.black]
+line-length = 88
+
+[tool.mypy]
+strict = true
