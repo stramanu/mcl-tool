@@ -43,6 +43,25 @@ mcld run test
 - **Code Review**: Expect review cycles; keep black/mypy happy before requesting review.
 - **Pre-flight checks**: Run `pre-commit run --all-files`, `pytest --cov=src/mcl`, and `mypy src tests` before pushing.
 
+## Release & Publishing
+
+### Preparing a Release
+1. Update version in `pyproject.toml` and `src/mcl/__init__.py` following semantic versioning.
+2. Update `CHANGELOG.md` with all changes for this release.
+3. Create a commit with message: `chore: bump version to X.Y.Z`
+4. Create a git tag: `git tag vX.Y.Z && git push origin vX.Y.Z`
+
+### Publishing to PyPI
+1. Ensure you have `build` and `twine` installed: `pip install build twine`
+2. Build the distribution: `python -m build`
+3. Upload to PyPI: `twine upload dist/*`
+   - For test PyPI: `twine upload --repository testpypi dist/*`
+4. Verify the release on [PyPI](https://pypi.org/project/mcl-tool/) or [Test PyPI](https://test.pypi.org/)
+
+### CI/CD Notes
+- Releases are triggered manually; ensure GitHub Actions CI passes before publishing.
+- Always test with `pip install mcl-tool` after publishing to verify installation works.
+
 ## Best Practices
 - **Design**: Enforce SRP, keep type hints and Google-style docstrings throughout modules.
 - **Testing**: Maintain high coverage; unit-test executor logic, integration-test the CLI.
