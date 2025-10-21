@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import logging
-import click  # type: ignore[import-not-found]
+from typing import Any, cast
+
+import click
 
 from .commands import extract_script_maps, list_script_paths
 from .config import edit_global, init_local as init_local_config, load_config
@@ -13,7 +15,7 @@ from .executor import execute
 class ScriptGroup(click.Group):
     """Custom Click group that falls back to the `run` command."""
 
-    def get_command(self, ctx: click.Context, cmd_name: str):  # type: ignore[override]
+    def get_command(self, ctx: click.Context, cmd_name: str) -> click.Command | None:
         command = super().get_command(ctx, cmd_name)
         if command is not None:
             return command
@@ -22,16 +24,22 @@ class ScriptGroup(click.Group):
         if run_command is None:
             return None
 
+        assert run_command is not None
+
         class ScriptAliasCommand(click.Command):
             def __init__(self, name: str) -> None:
                 super().__init__(name)
                 self.allow_extra_args = True
                 self.ignore_unknown_options = True
 
-            def invoke(self_alias, alias_ctx: click.Context) -> None:  # type: ignore[override]
-                remaining = tuple(alias_ctx.args)
-                alias_ctx.args = ()
-                return alias_ctx.invoke(run_command, cmd_name=cmd_name, args=remaining)
+            def invoke(self_alias, alias_ctx: click.Context) -> Any:
+                remaining: list[str] = list(alias_ctx.args)
+                alias_ctx.args = []
+                return alias_ctx.invoke(
+                    cast(click.Command, run_command),
+                    cmd_name=cmd_name,
+                    args=tuple(remaining),
+                )
 
         return ScriptAliasCommand(name=cmd_name)
 

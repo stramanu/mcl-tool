@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest  # type: ignore[import-not-found]
+import pytest
 
 from mcl import config
 

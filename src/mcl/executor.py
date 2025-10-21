@@ -149,13 +149,9 @@ def execute(
             continue
 
         try:
-            if share_vars:
-                subprocess.run(step, shell=True, check=True, env=env)
-            else:
-                argv = shlex.split(step)
-                if not argv:
-                    continue
-                subprocess.run(argv, shell=False, check=True)
+            # Always use shell=True to support environment variables and complex shell syntax.
+            # When share_vars is True, pass the environment dict; otherwise use the current environment.
+            subprocess.run(step, shell=True, check=True, env=env)
         except subprocess.CalledProcessError as exc:  # pragma: no cover - safety net
             raise ValueError(f"Command failed with exit code {exc.returncode}") from exc
 

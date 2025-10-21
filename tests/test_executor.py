@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import subprocess
-from typing import Any, List
+from typing import Any
 
-import pytest  # type: ignore[import-not-found]
+import pytest
 
 from mcl.executor import execute, render_script
 
@@ -23,7 +23,7 @@ def test_render_script_raises_on_missing_arg() -> None:
 
 
 def test_execute_runs_subprocess(monkeypatch: pytest.MonkeyPatch) -> None:
-    calls: List[Any] = []
+    calls: list[Any] = []
 
     def fake_run(cmd: Any, **kwargs: Any) -> None:
         calls.append((cmd, kwargs))
@@ -35,8 +35,8 @@ def test_execute_runs_subprocess(monkeypatch: pytest.MonkeyPatch) -> None:
 
     assert calls
     cmd, kwargs = calls[0]
-    assert cmd == ["echo", "world"]
-    assert kwargs["shell"] is False
+    assert cmd == "echo world"
+    assert kwargs["shell"] is True
     assert kwargs["check"] is True
 
 
@@ -53,7 +53,7 @@ def test_execute_dry_run_skips_execution(monkeypatch: pytest.MonkeyPatch) -> Non
 def test_execute_share_vars_exports_environment(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    captured: List[Any] = []
+    captured: list[Any] = []
 
     def fake_run(cmd: Any, **kwargs: Any) -> None:
         captured.append((cmd, kwargs))
@@ -72,7 +72,7 @@ def test_execute_share_vars_exports_environment(
 
 
 def test_execute_supports_nested_scripts(monkeypatch: pytest.MonkeyPatch) -> None:
-    captured: List[Any] = []
+    captured: list[Any] = []
 
     def fake_run(cmd: Any, **kwargs: Any) -> None:
         captured.append((cmd, kwargs))
@@ -93,8 +93,8 @@ def test_execute_supports_nested_scripts(monkeypatch: pytest.MonkeyPatch) -> Non
 
     assert captured
     cmd, kwargs = captured[0]
-    assert cmd == ["echo", "Hello,", "World!"]
-    assert kwargs["shell"] is False
+    assert cmd == "echo Hello, World!"
+    assert kwargs["shell"] is True
     assert kwargs["check"] is True
 
 
@@ -113,3 +113,26 @@ def test_execute_nested_requires_valid_subcommand() -> None:
 
     with pytest.raises(ValueError):
         execute(config, "example", ["missing"], dry_run=True, share_vars=False)
+
+
+def test_execute_handles_environment_variables(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that environment variables in commands are handled correctly."""
+    captured: list[Any] = []
+
+    def fake_run(cmd: Any, **kwargs: Any) -> None:
+        captured.append((cmd, kwargs))
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    config = {
+        "scripts": {"build": {"win": "GOOS=windows GOARCH=amd64 wails build"}},
+        "vars": {},
+    }
+
+    execute(config, "build", ["win"], dry_run=False, share_vars=False)
+
+    assert captured
+    cmd, kwargs = captured[0]
+    assert cmd == "GOOS=windows GOARCH=amd64 wails build"
+    assert kwargs["shell"] is True
+    assert kwargs["check"] is True

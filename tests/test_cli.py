@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import importlib
-from typing import Any, Dict, List
+from typing import Any
 
-import pytest  # type: ignore[import-not-found]
-from click.testing import CliRunner  # type: ignore[import-not-found]
+import pytest
+from click.testing import CliRunner
 
 cli_module = importlib.import_module("mcl.cli")
 from mcl.cli import cli
@@ -14,16 +14,16 @@ from mcl.cli import cli
 
 def test_run_invokes_executor(monkeypatch: pytest.MonkeyPatch) -> None:
     runner = CliRunner()
-    calls: Dict[str, Any] = {}
+    calls: dict[str, Any] = {}
 
-    def fake_load_config(*_, **__):
+    def fake_load_config(*_, **__):  # type: ignore[no-untyped-def]
         calls["load_config"] = True
         return {"scripts": {"test": ["echo hi"]}, "vars": {}}
 
     def fake_execute(
-        config: Dict[str, Any],
+        config: dict[str, Any],
         cmd: str,
-        args: List[str],
+        args: list[str],
         dry_run: bool,
         share_vars: bool,
     ) -> None:
@@ -53,10 +53,10 @@ def test_run_invokes_executor(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_run_reports_value_error(monkeypatch: pytest.MonkeyPatch) -> None:
     runner = CliRunner()
 
-    def fake_load_config(*_, **__):
+    def fake_load_config(*_, **__):  # type: ignore[no-untyped-def]
         return {"scripts": {"bad": ["echo hi"]}, "vars": {}}
 
-    def fake_execute(*_, **__):
+    def fake_execute(*_, **__):  # type: ignore[no-untyped-def]
         raise ValueError("boom")
 
     monkeypatch.setattr(cli_module, "load_config", fake_load_config)
@@ -118,16 +118,16 @@ def test_edit_conf_command_reports_errors(monkeypatch: pytest.MonkeyPatch) -> No
 
 def test_direct_script_invocation(monkeypatch: pytest.MonkeyPatch) -> None:
     runner = CliRunner()
-    calls: Dict[str, Any] = {}
+    calls: dict[str, Any] = {}
 
-    def fake_load_config(*_, **__):
+    def fake_load_config(*_, **__):  # type: ignore[no-untyped-def]
         calls["load_config"] = True
         return {"scripts": {"test": ["echo $1"]}, "vars": {}}
 
     def fake_execute(
-        config: Dict[str, Any],
+        config: dict[str, Any],
         cmd: str,
-        args: List[str],
+        args: list[str],
         dry_run: bool,
         share_vars: bool,
     ) -> None:
@@ -156,9 +156,9 @@ def test_direct_script_invocation(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_nested_script_invocation(monkeypatch: pytest.MonkeyPatch) -> None:
     runner = CliRunner()
-    calls: Dict[str, Any] = {}
+    calls: dict[str, Any] = {}
 
-    def fake_load_config(*_, **__):
+    def fake_load_config(*_, **__):  # type: ignore[no-untyped-def]
         calls["load_config"] = True
         return {
             "scripts": {
@@ -172,9 +172,9 @@ def test_nested_script_invocation(monkeypatch: pytest.MonkeyPatch) -> None:
         }
 
     def fake_execute(
-        config: Dict[str, Any],
+        config: dict[str, Any],
         cmd: str,
-        args: List[str],
+        args: list[str],
         dry_run: bool,
         share_vars: bool,
     ) -> None:
@@ -208,7 +208,7 @@ def test_nested_script_invocation(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_usage_lists_scripts(monkeypatch: pytest.MonkeyPatch) -> None:
     runner = CliRunner()
 
-    def fake_load_config(*_, **__):
+    def fake_load_config(*_, **__):  # type: ignore[no-untyped-def]
         return {
             "scripts": {
                 "example": {

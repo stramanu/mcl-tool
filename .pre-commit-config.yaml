@@ -7,4 +7,5 @@ repos:
   rev: v1.5.1
   hooks:
   - id: mypy
-    args: [--strict]
+    args: [--strict, --config-file=pyproject.toml]
+    additional_dependencies: [types-click]
