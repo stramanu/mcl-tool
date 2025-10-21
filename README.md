@@ -1,44 +1,51 @@
-# mcl-tool — My Command Line
+# ⚡ mcl-tool — My Command Line
 
-A batteries-included CLI that turns JSON recipes into reusable automation scripts.
+> **Turn JSON recipes into powerful automation scripts**. Write once, run everywhere.
 
-**Author:** [Emanuele Strazzullo](https://github.com/stramanu)
-- **Dev friendly** – strict type hints, pytest coverage, mypy/black enforced in CI.
-- **Open source** – licensed under MIT, free to fork, adapt, and redistribute with attribution.
+A lightweight, batteries-included CLI that makes command automation effortless. Compose reusable scripts with variables, nested flows, and safe execution—all stored in simple JSON.
 
 [![PyPI](https://img.shields.io/pypi/v/mcl-tool)](https://pypi.org/project/mcl-tool/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![CI](https://github.com/stramanu/mcl-tool/actions/workflows/ci.yml/badge.svg)
 
-## Why mcl-tool?
-- **Composable scripts** – author commands once in JSON and call them from anywhere.
-- **Args & vars aware** – mix positional placeholders (`$1`, `$2`) with named variables and optional fragments (`?$1`).
-- **Nested flows** – drill into structures like `example.date.utc` via `mcl example date utc`.
-- **Safe execution** – dry-run mode, opt-in environment sharing, structured logging.
-- **Dev friendly** – strict type hints, pytest coverage, mypy/black enforced in CI.
+<p align="center">
+	<img src="assets/banner.jpg" alt="mcl-tool banner" style="max-width:100%;height:auto;">
+</p>
+
+---
+
+## ✨ Why mcl-tool?
+
+| Feature | Description |
+|---------|-------------|
+| 🎯 **Composable scripts** | Author commands once in JSON and call them from anywhere. |
+| 🔄 **Args & vars** | Mix positional placeholders (`$1`, `$2`) with config vars and optional fragments. |
+| 🎲 **Nested flows** | Navigate structures like `example.date.utc` via `mcl example date utc`. |
+| 🛡️ **Safe execution** | Dry-run mode, opt-in environment sharing, structured logging. |
+| 📐 **Developer-friendly** | Strict type hints, 100% test coverage, mypy/black enforced in CI. |
+| 🔓 **Open source** | MIT-licensed; fork, adapt, and redistribute freely with attribution. |
 
 ## Installation
 
-### macOS / Linux (virtual environment recommended)
+### Recommended: pipx (macOS / Linux)
+The easiest way to get started—[pipx](https://pipx.pypa.io/) manages isolation and PATH for you:
+```bash
+pipx install mcl-tool
+```
+
+### Alternative: virtual environment
+If you prefer managing the venv yourself:
 1. Ensure Python 3.10+ is available (`python3 --version`).
-2. If `venv` is missing, install it (e.g. `sudo apt install python3-venv` on Debian/Ubuntu or `brew install python@3.11` on macOS).
-3. Create and activate an isolated environment:
+2. Create and activate an isolated environment:
 	```bash
 	python3 -m venv ~/.venvs/mcl
 	source ~/.venvs/mcl/bin/activate
 	python -m pip install --upgrade pip
 	```
-4. Install the CLI inside the environment:
+3. Install the CLI:
 	```bash
 	pip install mcl-tool
 	```
-
-### System-wide install via pipx
-If you prefer a standalone binary-like install, use [pipx](https://pipx.pypa.io/):
-```bash
-pipx install mcl-tool
-```
-This keeps `mcl` isolated while exposing the command on your PATH.
 
 ## Quick Start
 1. **Initialize a project config**
@@ -75,6 +82,16 @@ This keeps `mcl` isolated while exposing the command on your PATH.
 	mcl --dry-run example date utc
 	mcl                        # -> shows available scripts from global + local config
 	```
+
+## Demo
+
+<p align="center">
+	<img src="assets/demo1.gif" alt="Demo 1" style="max-width:100%;height:auto;">
+</p>
+
+<p align="center">
+	<img src="assets/demo2.gif" alt="Demo 2" style="max-width:100%;height:auto;">
+</p>
 
 ## Command Reference
 | Command | Description |
