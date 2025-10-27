@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any, cast
 
 import click
@@ -10,16 +11,30 @@ import click
 from .commands import extract_script_maps, list_script_paths
 from .config import edit_global, init_local as init_local_config, load_config
 from .executor import execute
+from .plugins import discover_plugins
 
 
 class ScriptGroup(click.Group):
-    """Custom Click group that falls back to the `run` command."""
+    """Custom Click group with plugin support that falls back to the `run` command."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self._plugins = discover_plugins()
+        if self._plugins:
+            logger = logging.getLogger(__name__)
+            logger.debug(f"Loaded {len(self._plugins)} plugin(s)")
 
     def get_command(self, ctx: click.Context, cmd_name: str) -> click.Command | None:
+        # 1. Check built-in commands first
         command = super().get_command(ctx, cmd_name)
         if command is not None:
             return command
 
+        # 2. Check if it's a registered plugin
+        if cmd_name in self._plugins:
+            return self._create_plugin_command(cmd_name)
+
+        # 3. Fallback to script execution from mcl.json
         run_command = super().get_command(ctx, "run")
         if run_command is None:
             return None
@@ -42,6 +57,46 @@ class ScriptGroup(click.Group):
                 )
 
         return ScriptAliasCommand(name=cmd_name)
+
+    def _create_plugin_command(self, name: str) -> click.Command:
+        """Create a Click command wrapper for a plugin.
+
+        Args:
+            name: The plugin name
+
+        Returns:
+            A Click command that invokes the plugin entry point
+        """
+        plugin_fn = self._plugins[name]
+        logger = logging.getLogger(__name__)
+
+        class PluginCommand(click.Command):
+            def __init__(self) -> None:
+                super().__init__(name)
+                self.allow_extra_args = True
+                self.ignore_unknown_options = True
+
+            def invoke(self, ctx: click.Context) -> Any:
+                # Pass remaining args to plugin
+                args = list(ctx.args)
+
+                # Pass mcl context via environment variables
+                if ctx.obj:
+                    if ctx.obj.get("dry_run"):
+                        os.environ["MCL_DRY_RUN"] = "1"
+                    if ctx.obj.get("share_vars"):
+                        os.environ["MCL_SHARE_VARS"] = "1"
+
+                try:
+                    exit_code = plugin_fn(args)
+                    if exit_code != 0:
+                        logger.error(f"Plugin '{name}' exited with code {exit_code}")
+                        raise click.Abort()
+                except Exception as e:
+                    logger.error(f"Plugin '{name}' failed: {e}")
+                    raise click.Abort()
+
+        return PluginCommand()
 
 
 @click.group(

@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcl-plugin-test"
+version = "0.1.0"
+description = "Test plugin for mcl integration testing"
+readme = "README.md"
+authors = [{name = "MCL Test", email = "test@mcl.local"}]
+license = {text = "MIT"}
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+
+[project.entry-points."mcl.plugins"]
+test-plugin = "mcl_plugin_test.cli:main"
