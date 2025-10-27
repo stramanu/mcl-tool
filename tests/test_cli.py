@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib
 from typing import Any
+from unittest.mock import MagicMock
 
 import pytest
 from click.testing import CliRunner
@@ -247,3 +248,107 @@ def test_usage_lists_scripts(monkeypatch: pytest.MonkeyPatch) -> None:
     global_section = result.output[result.output.rfind("Global scripts") :]
     assert global_section.count("example.hello") == 0
     assert result.exit_code == 0
+
+
+def test_plugin_list_no_plugins(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test plugin list command when no plugins are installed."""
+    runner = CliRunner()
+
+    def fake_list_plugins() -> list[tuple[str, str]]:
+        return []
+
+    monkeypatch.setattr(cli_module, "list_plugins", fake_list_plugins)
+
+    result = runner.invoke(cli, ["plugin", "list"])
+
+    assert result.exit_code == 0
+    assert "No plugins installed" in result.output
+    assert "pip install mcl-plugin-" in result.output
+
+
+def test_plugin_list_shows_installed(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test plugin list command with installed plugins."""
+    runner = CliRunner()
+
+    def fake_list_plugins() -> list[tuple[str, str]]:
+        return [
+            ("docker", "v1.0.0"),
+            ("git", "v0.5.2"),
+        ]
+
+    monkeypatch.setattr(cli_module, "list_plugins", fake_list_plugins)
+
+    result = runner.invoke(cli, ["plugin", "list"])
+
+    assert result.exit_code == 0
+    assert "docker (v1.0.0)" in result.output
+    assert "git (v0.5.2)" in result.output
+    assert "Total: 2 plugins installed" in result.output
+
+
+def test_plugin_info_shows_details(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test plugin info command shows plugin details."""
+    runner = CliRunner()
+
+    class MockEntryPoint:
+        name = "test-plugin"
+        value = "test_pkg.cli:main"
+
+    class MockDistribution:
+        name = "mcl-plugin-test"
+        version = "1.2.3"
+        metadata = {
+            "Summary": "A test plugin",
+            "Home-page": "https://example.com",
+            "Author": "Test Author",
+            "License": "MIT",
+        }
+
+        def get(self, key: str) -> str | None:
+            return self.metadata.get(key)
+
+    def fake_entry_points() -> Any:
+        mock_eps = MagicMock()
+        mock_eps.select.return_value = [MockEntryPoint()]
+        return mock_eps
+
+    def fake_distribution(name: str) -> MockDistribution:
+        return MockDistribution()
+
+    import importlib.metadata
+
+    monkeypatch.setattr(importlib.metadata, "entry_points", fake_entry_points)
+    monkeypatch.setattr(importlib.metadata, "distribution", fake_distribution)
+
+    result = runner.invoke(cli, ["plugin", "info", "test-plugin"])
+
+    assert result.exit_code == 0
+    assert "Plugin: test-plugin" in result.output
+    assert "Entry Point: test_pkg.cli:main" in result.output
+    assert "Version: 1.2.3" in result.output
+    assert "Description: A test plugin" in result.output
+
+
+def test_plugin_info_not_found(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test plugin info command with nonexistent plugin."""
+    runner = CliRunner()
+
+    def fake_entry_points() -> Any:
+        mock_eps = MagicMock()
+        mock_eps.select.return_value = []
+        return mock_eps
+
+    def fake_list_plugins() -> list[tuple[str, str]]:
+        return [("other-plugin", "v1.0.0")]
+
+    import importlib.metadata
+
+    monkeypatch.setattr(importlib.metadata, "entry_points", fake_entry_points)
+    monkeypatch.setattr(cli_module, "list_plugins", fake_list_plugins)
+
+    result = runner.invoke(cli, ["plugin", "info", "nonexistent"])
+
+    assert result.exit_code == 1
+    assert "Plugin 'nonexistent' not found" in result.output
+    assert "Available plugins:" in result.output
+    assert "other-plugin" in result.output

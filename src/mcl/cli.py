@@ -11,7 +11,7 @@ import click
 from .commands import extract_script_maps, list_script_paths
 from .config import edit_global, init_local as init_local_config, load_config
 from .executor import execute
-from .plugins import discover_plugins
+from .plugins import discover_plugins, list_plugins
 
 
 class ScriptGroup(click.Group):
@@ -201,6 +201,92 @@ def run(ctx: click.Context, cmd_name: str, args: tuple[str, ...]) -> None:
     except ValueError as exc:
         click.secho(f"Error: {exc}", fg="red", err=True)
         raise click.Abort() from exc
+
+
+@cli.group()
+def plugin() -> None:
+    """Manage mcl plugins."""
+    pass
+
+
+@plugin.command(name="list")
+def plugin_list() -> None:
+    """List all installed mcl plugins."""
+    plugins = list_plugins()
+
+    if not plugins:
+        click.echo("No plugins installed.")
+        click.echo("\nInstall plugins with: pip install mcl-plugin-<name>")
+        click.echo("Example: pip install mcl-plugin-docker")
+        return
+
+    click.echo("Installed plugins:")
+    for name, version in plugins:
+        click.echo(f"  • {name} ({version})")
+
+    click.echo(
+        f"\nTotal: {len(plugins)} plugin{'s' if len(plugins) != 1 else ''} installed"
+    )
+    click.echo("\nUse 'mcl plugin info <name>' for details about a plugin.")
+
+
+@plugin.command(name="info")
+@click.argument("name")
+def plugin_info(name: str) -> None:
+    """Show detailed information about a plugin."""
+    import importlib.metadata
+
+    try:
+        eps = importlib.metadata.entry_points()
+
+        # Python 3.10+ uses select(), 3.8-3.9 uses dict-like access
+        if hasattr(eps, "select"):
+            group = eps.select(group="mcl.plugins")
+        else:
+            group = eps.get("mcl.plugins", [])
+
+        for ep in group:
+            if ep.name == name:
+                click.secho(f"Plugin: {name}", fg="cyan", bold=True)
+                click.echo(f"Entry Point: {ep.value}")
+
+                # Try to get package metadata
+                try:
+                    pkg_name = ep.value.split(":")[0].split(".")[0]
+                    dist = importlib.metadata.distribution(pkg_name)
+                    click.echo(f"Package: {dist.name}")
+                    click.echo(f"Version: {dist.version}")
+
+                    if dist.metadata.get("Summary"):
+                        click.echo(f"Description: {dist.metadata['Summary']}")
+                    if dist.metadata.get("Home-page"):
+                        click.echo(f"Homepage: {dist.metadata['Home-page']}")
+                    if dist.metadata.get("Author"):
+                        click.echo(f"Author: {dist.metadata['Author']}")
+                    if dist.metadata.get("License"):
+                        click.echo(f"License: {dist.metadata['License']}")
+                except Exception as e:
+                    logger = logging.getLogger(__name__)
+                    logger.debug(f"Could not load package metadata: {e}")
+
+                return
+
+        # Plugin not found
+        click.secho(f"Plugin '{name}' not found.", fg="red", err=True)
+        click.echo("\nAvailable plugins:")
+        plugins = list_plugins()
+        if plugins:
+            for plugin_name, _ in plugins:
+                click.echo(f"  • {plugin_name}")
+        else:
+            click.echo("  (none)")
+        raise click.Abort()
+
+    except click.Abort:
+        raise
+    except Exception as e:
+        click.secho(f"Error: {e}", fg="red", err=True)
+        raise click.Abort() from e
 
 
 def _configure_logging() -> None:
