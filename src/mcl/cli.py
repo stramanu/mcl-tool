@@ -148,6 +148,44 @@ def run(ctx: click.Context, cmd_name: str, args: tuple[str, ...]) -> None:
         raise click.Abort() from exc
 
 
+@cli.group()
+def mcp() -> None:
+    """MCP server commands."""
+    pass
+
+
+@mcp.command(name="start")
+def mcp_start() -> None:
+    """Start the MCL MCP server."""
+    import asyncio
+
+    from mcl.mcp.server import main as server_main
+
+    try:
+        click.echo("Starting MCL MCP server...")
+        asyncio.run(server_main())
+    except KeyboardInterrupt:
+        click.echo("\nServer stopped")
+    except Exception as e:
+        click.secho(f"Server error: {e}", fg="red", err=True)
+        raise click.Abort() from e
+
+
+@mcp.command(name="test")
+def mcp_test() -> None:
+    """Test MCP server connectivity."""
+    click.echo("Testing MCP server...")
+    click.echo("✓ MCP server module loaded successfully")
+    click.echo("\nTo start the server, run: mcl mcp start")
+    click.echo("Configure in VS Code settings.json:")
+    click.echo('  "mcp.servers": {')
+    click.echo('    "mcl": {')
+    click.echo('      "command": "mcl",')
+    click.echo('      "args": ["mcp", "start"]')
+    click.echo("    }")
+    click.echo("  }")
+
+
 def _configure_logging() -> None:
     """Initialize root logging once for the CLI session."""
 

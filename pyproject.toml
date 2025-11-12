@@ -18,12 +18,14 @@ classifiers = [
 ]
 dependencies = [
     "click>=8.0",
+    "mcp>=0.9.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0",
     "pytest-cov",
+    "pytest-asyncio>=0.21.0",
     "mypy",
     "black",
     "pre-commit",
@@ -58,3 +60,12 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "pytest"
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "mcp.*"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
