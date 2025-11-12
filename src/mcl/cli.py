@@ -254,7 +254,7 @@ def plugin_info(name: str) -> None:
                 try:
                     pkg_name = ep.value.split(":")[0].split(".")[0]
                     dist = importlib.metadata.distribution(pkg_name)
-                    click.echo(f"Package: {dist.name}")
+                    click.echo(f"Package: {dist.metadata['Name']}")
                     click.echo(f"Version: {dist.version}")
 
                     if dist.metadata.get("Summary"):
@@ -286,6 +286,90 @@ def plugin_info(name: str) -> None:
         raise
     except Exception as e:
         click.secho(f"Error: {e}", fg="red", err=True)
+        raise click.Abort() from e
+
+
+@plugin.command(name="new")
+@click.option(
+    "--name",
+    "-n",
+    prompt="Plugin name (e.g., 'hello')",
+    help="Name of the plugin (used as mcl subcommand)",
+)
+@click.option(
+    "--description",
+    "-d",
+    prompt="Description",
+    default="A custom MCL plugin",
+    help="Short description of the plugin",
+)
+@click.option(
+    "--template",
+    "-t",
+    type=click.Choice(["simple", "click", "api-client"], case_sensitive=False),
+    prompt="Template type",
+    default="simple",
+    help="Plugin template to use",
+)
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(),
+    help="Output directory (default: mcl-plugin-<name>)",
+)
+def plugin_new(name: str, description: str, template: str, output: str | None) -> None:
+    """Create a new plugin from template (interactive)."""
+    from pathlib import Path
+    from mcl.templates import generate_plugin, get_template_list
+
+    # Validate and normalize plugin name
+    plugin_name = name.lower().strip()
+    if not plugin_name:
+        click.secho("Error: Plugin name cannot be empty", fg="red", err=True)
+        raise click.Abort()
+
+    # Determine output directory
+    if output:
+        output_dir = Path(output)
+    else:
+        output_dir = Path(f"mcl-plugin-{plugin_name}")
+
+    # Check if directory exists
+    if output_dir.exists():
+        if not click.confirm(
+            f"Directory '{output_dir}' already exists. Overwrite?", default=False
+        ):
+            click.echo("Cancelled.")
+            raise click.Abort()
+
+    # Show template info
+    templates = get_template_list()
+    if template in templates:
+        template_info = templates[template]
+        click.echo(f"\n📦 Creating plugin with template: {template_info['name']}")
+        click.echo(f"   {template_info['description']}")
+
+    # Generate plugin
+    try:
+        click.echo(f"\n🔧 Generating plugin '{plugin_name}'...")
+        generate_plugin(plugin_name, description, template, output_dir)
+
+        click.secho(f"\n✅ Plugin created successfully!", fg="green", bold=True)
+        click.echo(f"\n📁 Location: {output_dir.absolute()}")
+
+        # Show next steps
+        click.echo("\n📝 Next steps:")
+        click.echo(f"   1. cd {output_dir}")
+        click.echo("   2. pip install -e '.[dev]'")
+        click.echo("   3. Edit src/mcl_plugin_*/cli.py to implement your logic")
+        click.echo("   4. pytest")
+        click.echo(f"   5. mcl {plugin_name}")
+
+        click.echo("\n📚 Documentation:")
+        click.echo("   docs/features/01.plugin-system/plugin-development-guide.md")
+
+    except Exception as e:
+        click.secho(f"\n❌ Error creating plugin: {e}", fg="red", err=True)
         raise click.Abort() from e
 
 
