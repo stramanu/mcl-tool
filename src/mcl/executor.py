@@ -107,7 +107,7 @@ def render_script(
 
 def _unescape_dollars(command: str) -> str:
     """Convert double-dollar escape sequences back to single dollar signs.
-    
+
     This is the final step after all substitutions, converting $$ to $.
     """
     return command.replace("$$", "$")

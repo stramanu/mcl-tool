@@ -166,7 +166,7 @@ def test_execute_generate_shell_script(monkeypatch: pytest.MonkeyPatch) -> None:
             "create-script": [
                 "echo '#!/bin/bash' > script.sh",
                 "echo 'echo Hello $$1' >> script.sh",
-                "chmod +x script.sh"
+                "chmod +x script.sh",
             ]
         },
         "vars": {},
@@ -183,11 +183,11 @@ def test_execute_generate_shell_script(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_double_dollar_with_optional_args() -> None:
     """Test that $$N works correctly with optional placeholders."""
     script = ["echo ?$1 $$2"]
-    
+
     # With argument provided
     result = render_script(script, ["arg1"], {})
     assert result == ["echo arg1 $2"]
-    
+
     # Without argument
     result = render_script(script, [], {})
     assert result == ["echo  $2"]
@@ -203,11 +203,10 @@ def test_escaped_vars_not_substituted() -> None:
 def test_multiple_consecutive_dollars() -> None:
     """Test edge case with multiple consecutive dollar signs."""
     # $$$ should become $$ after first unescape, then $ after replacements
-    # But with our implementation: $$$ stays as $$$ during matching (no match), 
+    # But with our implementation: $$$ stays as $$$ during matching (no match),
     # then becomes $ during unescape
     script = ["echo $$$1"]
     result = render_script(script, ["value"], {})
     # The first $$ prevents matching, so $1 is not replaced
     # Then $$ becomes $ during unescape
     assert result == ["echo $$1"]
-
