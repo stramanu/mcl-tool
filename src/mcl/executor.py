@@ -11,9 +11,9 @@ from typing import Any, List, Mapping, MutableMapping, Optional, Sequence, Match
 
 logger = logging.getLogger(__name__)
 
-_ARG_PATTERN = re.compile(r"\$(\d+)")
-_OPTIONAL_PATTERN = re.compile(r"\?\$(\d+)")
-_VAR_PATTERN = re.compile(r"\$(?P<name>[A-Za-z_][A-Za-z0-9_]*)")
+_ARG_PATTERN = re.compile(r"(?<!\$)\$(\d+)")
+_OPTIONAL_PATTERN = re.compile(r"(?<!\$)\?\$(\d+)")
+_VAR_PATTERN = re.compile(r"(?<!\$)\$(?P<name>[A-Za-z_][A-Za-z0-9_]*)")
 
 
 def _format_path(script_name: str, fragments: Sequence[str]) -> str:
@@ -85,6 +85,7 @@ def render_script(
     """Return the list of executable command strings after substitution.
 
     Comment-only or empty steps are dropped.
+    Supports double-dollar escape syntax: $$ becomes literal $.
     """
 
     rendered: List[str] = []
@@ -96,11 +97,20 @@ def render_script(
         step = _replace_optional(raw_step, args)
         step = _replace_positional(step, args)
         step = _replace_vars(step, vars_dict)
+        step = _unescape_dollars(step)
         final_step = step.strip()
         if final_step:
             rendered.append(final_step)
 
     return rendered
+
+
+def _unescape_dollars(command: str) -> str:
+    """Convert double-dollar escape sequences back to single dollar signs.
+    
+    This is the final step after all substitutions, converting $$ to $.
+    """
+    return command.replace("$$", "$")
 
 
 def execute(

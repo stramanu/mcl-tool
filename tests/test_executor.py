@@ -136,3 +136,78 @@ def test_execute_handles_environment_variables(monkeypatch: pytest.MonkeyPatch) 
     assert cmd == "GOOS=windows GOARCH=amd64 wails build"
     assert kwargs["shell"] is True
     assert kwargs["check"] is True
+
+
+def test_render_script_escapes_double_dollar() -> None:
+    """Test that double dollar $$ remains as literal $ in output."""
+    script = ["echo $$1", "echo $$project", "echo $$HOME"]
+    result = render_script(script, [], {})
+    assert result == ["echo $1", "echo $project", "echo $HOME"]
+
+
+def test_render_script_mixed_escaped_and_substituted() -> None:
+    """Test scripts with both regular placeholders and escaped ones."""
+    script = ["echo $1 $$2", "echo $name and $$USER"]
+    result = render_script(script, ["hello"], {"name": "mcl"})
+    assert result == ["echo hello $2", "echo mcl and $USER"]
+
+
+def test_execute_generate_shell_script(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Real-world scenario: creating a shell script with bash parameters."""
+    captured: list[Any] = []
+
+    def fake_run(cmd: Any, **kwargs: Any) -> None:
+        captured.append((cmd, kwargs))
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    config = {
+        "scripts": {
+            "create-script": [
+                "echo '#!/bin/bash' > script.sh",
+                "echo 'echo Hello $$1' >> script.sh",
+                "chmod +x script.sh"
+            ]
+        },
+        "vars": {},
+    }
+
+    execute(config, "create-script", [], dry_run=False, share_vars=False)
+
+    assert len(captured) == 3
+    assert captured[0][0] == "echo '#!/bin/bash' > script.sh"
+    assert captured[1][0] == "echo 'echo Hello $1' >> script.sh"
+    assert captured[2][0] == "chmod +x script.sh"
+
+
+def test_double_dollar_with_optional_args() -> None:
+    """Test that $$N works correctly with optional placeholders."""
+    script = ["echo ?$1 $$2"]
+    
+    # With argument provided
+    result = render_script(script, ["arg1"], {})
+    assert result == ["echo arg1 $2"]
+    
+    # Without argument
+    result = render_script(script, [], {})
+    assert result == ["echo  $2"]
+
+
+def test_escaped_vars_not_substituted() -> None:
+    """Test that $$varname is not replaced with config vars."""
+    script = ["echo $$project and $version"]
+    result = render_script(script, [], {"project": "mcl", "version": "1.0"})
+    assert result == ["echo $project and 1.0"]
+
+
+def test_multiple_consecutive_dollars() -> None:
+    """Test edge case with multiple consecutive dollar signs."""
+    # $$$ should become $$ after first unescape, then $ after replacements
+    # But with our implementation: $$$ stays as $$$ during matching (no match), 
+    # then becomes $ during unescape
+    script = ["echo $$$1"]
+    result = render_script(script, ["value"], {})
+    # The first $$ prevents matching, so $1 is not replaced
+    # Then $$ becomes $ during unescape
+    assert result == ["echo $$1"]
+

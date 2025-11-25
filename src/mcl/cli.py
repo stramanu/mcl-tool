@@ -49,7 +49,7 @@ class ScriptGroup(click.Group):
     invoke_without_command=True,
     context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
 )
-@click.version_option()
+@click.version_option(package_name="mcl-tool")
 @click.option("--dry-run", is_flag=True, help="Print commands without executing them.")
 @click.option(
     "--share-vars",
