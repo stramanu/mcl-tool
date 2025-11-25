@@ -7,7 +7,7 @@ name = "mcl-tool"
 version = "0.3.0"
 description = "My Command Line: A personal generic customizable CLI tool"
 readme = "README.md"
-authors = [{name = "Your Name", email = "your@email.com"}]
+authors = [{name = "Emanuele Strazzullo", email = "stramanu94@gmail.com"}]
 license = {text = "MIT"}
 requires-python = ">=3.8"
 classifiers = [
@@ -34,9 +34,9 @@ dev = [
 mcl = "mcl.cli:cli"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/mcl-tool"
-Repository = "https://github.com/yourusername/mcl-tool"
-Documentation = "https://github.com/yourusername/mcl-tool/tree/main/docs"
+Homepage = "https://github.com/stramanu/mcl-tool"
+Repository = "https://github.com/stramanu/mcl-tool"
+Documentation = "https://github.com/stramanu/mcl-tool/tree/main/docs"
 
 [tool.black]
 line-length = 88
