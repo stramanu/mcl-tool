@@ -40,7 +40,7 @@ def discover_plugins() -> Dict[str, PluginEntry]:
         if hasattr(eps, "select"):
             group = eps.select(group="mcl.plugins")
         else:
-            group = eps.get("mcl.plugins", [])
+            group = eps.get("mcl.plugins", [])  # type: ignore[arg-type]
 
         for ep in group:
             try:
@@ -82,7 +82,7 @@ def list_plugins() -> List[Tuple[str, str]]:
         if hasattr(eps, "select"):
             group = eps.select(group="mcl.plugins")
         else:
-            group = eps.get("mcl.plugins", [])
+            group = eps.get("mcl.plugins", [])  # type: ignore[arg-type]
 
         for ep in group:
             # Try to get package version

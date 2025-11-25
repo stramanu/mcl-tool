@@ -243,7 +243,7 @@ def plugin_info(name: str) -> None:
         if hasattr(eps, "select"):
             group = eps.select(group="mcl.plugins")
         else:
-            group = eps.get("mcl.plugins", [])
+            group = eps.get("mcl.plugins", [])  # type: ignore[arg-type]
 
         for ep in group:
             if ep.name == name:
@@ -257,13 +257,13 @@ def plugin_info(name: str) -> None:
                     click.echo(f"Package: {dist.metadata['Name']}")
                     click.echo(f"Version: {dist.version}")
 
-                    if dist.metadata.get("Summary"):
+                    if "Summary" in dist.metadata:
                         click.echo(f"Description: {dist.metadata['Summary']}")
-                    if dist.metadata.get("Home-page"):
+                    if "Home-page" in dist.metadata:
                         click.echo(f"Homepage: {dist.metadata['Home-page']}")
-                    if dist.metadata.get("Author"):
+                    if "Author" in dist.metadata:
                         click.echo(f"Author: {dist.metadata['Author']}")
-                    if dist.metadata.get("License"):
+                    if "License" in dist.metadata:
                         click.echo(f"License: {dist.metadata['License']}")
                 except Exception as e:
                     logger = logging.getLogger(__name__)

@@ -115,7 +115,7 @@ class TestDiscoverPlugins:
     @patch("mcl.plugins.importlib.metadata.entry_points")
     def test_discover_legacy_api_no_plugins(self, mock_entry_points: MagicMock) -> None:
         """Test legacy API when no plugins are registered."""
-        mock_eps = {}
+        mock_eps: dict[str, list[Any]] = {}
         mock_entry_points.return_value = mock_eps
 
         plugins = discover_plugins()

@@ -7,7 +7,7 @@ from mcl.cli import cli
 from mcl.templates import generate_plugin, get_template_list, TEMPLATES
 
 
-def test_get_template_list():
+def test_get_template_list() -> None:
     """Test retrieving available templates."""
     templates = get_template_list()
 
@@ -20,7 +20,7 @@ def test_get_template_list():
     assert templates["click"]["name"] == "Click-based Plugin"
 
 
-def test_generate_simple_plugin(tmp_path):
+def test_generate_simple_plugin(tmp_path: Path) -> None:
     """Test generating a simple plugin."""
     plugin_name = "test"
     description = "A test plugin"
@@ -47,7 +47,7 @@ def test_generate_simple_plugin(tmp_path):
     assert "MCL_DRY_RUN" in cli_py
 
 
-def test_generate_click_plugin(tmp_path):
+def test_generate_click_plugin(tmp_path: Path) -> None:
     """Test generating a Click-based plugin."""
     plugin_name = "docker"
     description = "Docker utilities"
@@ -66,7 +66,7 @@ def test_generate_click_plugin(tmp_path):
     assert "@cli.command()" in cli_py
 
 
-def test_generate_api_client_plugin(tmp_path):
+def test_generate_api_client_plugin(tmp_path: Path) -> None:
     """Test generating an API client plugin."""
     plugin_name = "github"
     description = "GitHub API client"
@@ -85,13 +85,13 @@ def test_generate_api_client_plugin(tmp_path):
     assert "API_KEY" in cli_py
 
 
-def test_generate_plugin_invalid_template(tmp_path):
+def test_generate_plugin_invalid_template(tmp_path: Path) -> None:
     """Test error handling for invalid template."""
     with pytest.raises(ValueError, match="Unknown template"):
         generate_plugin("test", "Test", "invalid", tmp_path)
 
 
-def test_plugin_new_command_help():
+def test_plugin_new_command_help() -> None:
     """Test 'mcl plugin new --help' command."""
     runner = CliRunner()
     result = runner.invoke(cli, ["plugin", "new", "--help"])
@@ -106,7 +106,7 @@ def test_plugin_new_command_help():
     assert "api-client" in result.output
 
 
-def test_plugin_new_command_non_interactive(tmp_path):
+def test_plugin_new_command_non_interactive(tmp_path: Path) -> None:
     """Test 'mcl plugin new' with all options provided."""
     runner = CliRunner()
     output_dir = tmp_path / "test-output"
@@ -133,7 +133,7 @@ def test_plugin_new_command_non_interactive(tmp_path):
     assert (output_dir / "src" / "mcl_plugin_hello" / "cli.py").exists()
 
 
-def test_plugin_new_command_directory_exists(tmp_path):
+def test_plugin_new_command_directory_exists(tmp_path: Path) -> None:
     """Test error when output directory already exists."""
     runner = CliRunner()
     output_dir = tmp_path / "existing"
@@ -163,7 +163,7 @@ def test_plugin_new_command_directory_exists(tmp_path):
     assert "already exists" in result.output
 
 
-def test_plugin_new_command_overwrite_confirm(tmp_path):
+def test_plugin_new_command_overwrite_confirm(tmp_path: Path) -> None:
     """Test overwriting existing directory when user confirms."""
     runner = CliRunner()
     output_dir = tmp_path / "existing"
@@ -191,7 +191,7 @@ def test_plugin_new_command_overwrite_confirm(tmp_path):
     assert (output_dir / "pyproject.toml").exists()
 
 
-def test_plugin_new_empty_name():
+def test_plugin_new_empty_name() -> None:
     """Test error when plugin name is empty."""
     runner = CliRunner()
 
@@ -213,7 +213,7 @@ def test_plugin_new_empty_name():
     assert "Plugin name cannot be empty" in result.output
 
 
-def test_generated_plugin_structure_simple(tmp_path):
+def test_generated_plugin_structure_simple(tmp_path: Path) -> None:
     """Test that generated simple plugin has correct structure."""
     output_dir = tmp_path / "mcl-plugin-mytest"
     generate_plugin("mytest", "My test plugin", "simple", output_dir)

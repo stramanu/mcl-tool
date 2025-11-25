@@ -297,15 +297,18 @@ def test_plugin_info_shows_details(monkeypatch: pytest.MonkeyPatch) -> None:
     class MockDistribution:
         name = "mcl-plugin-test"
         version = "1.2.3"
-        metadata = {
+        _metadata = {
+            "Name": "mcl-plugin-test",
             "Summary": "A test plugin",
             "Home-page": "https://example.com",
             "Author": "Test Author",
             "License": "MIT",
         }
 
-        def get(self, key: str) -> str | None:
-            return self.metadata.get(key)
+        @property
+        def metadata(self) -> dict[str, str]:
+            """Return metadata as dict."""
+            return self._metadata
 
     def fake_entry_points() -> Any:
         mock_eps = MagicMock()
