@@ -29,7 +29,6 @@ dev = [
     "black",
     "pre-commit",
     "types-click",
-    "types-questionary",
 ]
 
 [project.scripts]
