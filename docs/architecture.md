@@ -50,10 +50,33 @@ JSON structure:
 }
 ```
 
-- **scripts**: Each value can be a string command, a list of shell fragments, or another mapping of subcommands. Nested structures are traversed by passing the desired path as additional CLI arguments (e.g. `mcl example hello`). Lines starting with `#` are ignored when executing.
+- **scripts**: Each value can be a string command, a list of shell fragments, or another mapping of subcommands. Nested structures are traversed by passing the desired path as space-separated arguments (e.g., `mcl example hello` or `mcl example date utc`). Scripts are both listed and executed using space notation (e.g., `example hello`, `example date utc`). Lines starting with `#` are ignored when executing.
 - **vars**: Key/value pairs injected during substitution and optionally exported to the environment.
+
+## Interactive Subcommand Selection
+
+When executing a nested command without specifying a subcommand, mcl-tool provides an interactive menu in TTY environments:
+
+```bash
+$ mcl docker
+? Select a subcommand for 'docker':
+  ❯ build
+    run
+    stop
+    logs
+```
+
+Users can navigate with arrow keys (↑/↓) and select with Enter. Pressing Ctrl+C cancels the operation.
+
+**Behavior**:
+- **TTY mode** (interactive terminal): Shows questionary-based selection menu
+- **Non-TTY mode** (pipes, scripts, CI/CD): Raises `ValueError` with available options listed
+- **Graceful cancellation**: Ctrl+C or closing the menu raises a clear "cancelled by user" error
+
+This feature improves discoverability while maintaining backward compatibility for automation workflows.
 
 ## Known Trade-offs
 
 - JSON keeps dependencies light but lacks schema validation; future work may introduce Pydantic.
 - Using `shell=True` for shared environments trades safety for convenience; keep it opt-in.
+- Interactive menus require `questionary` dependency but gracefully degrade to error messages in non-interactive contexts.

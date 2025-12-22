@@ -208,6 +208,12 @@ def test_nested_script_invocation(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_usage_lists_scripts(monkeypatch: pytest.MonkeyPatch) -> None:
     runner = CliRunner()
 
+    # Mock TTY to return False (non-interactive environment for tests)
+    import sys
+
+    monkeypatch.setattr(sys.stdin, "isatty", lambda: False)
+    monkeypatch.setattr(sys.stdout, "isatty", lambda: False)
+
     def fake_load_config(*_, **__):  # type: ignore[no-untyped-def]
         return {
             "scripts": {
@@ -237,13 +243,15 @@ def test_usage_lists_scripts(monkeypatch: pytest.MonkeyPatch) -> None:
     with runner.isolated_filesystem():
         result = runner.invoke(cli, [])
 
-    assert "Tip: use `mcl run <script>`" in result.output
+    assert "⚡ mcl - My Command Line" in result.output
+    assert "Use `mcl --help` for detailed usage information" in result.output
     assert "Local scripts" in result.output
     assert "Global scripts" in result.output
-    assert "example.hello" in result.output
-    assert "example.build" in result.output
-    assert "example.date.utc" in result.output
+    assert "example hello" in result.output
+    assert "example build" in result.output
+    assert "example date utc" in result.output
+    assert "Run a script: mcl <script>" in result.output
     # ensure overridden local command not repeated in global section
     global_section = result.output[result.output.rfind("Global scripts") :]
-    assert global_section.count("example.hello") == 0
+    assert global_section.count("example hello") == 0
     assert result.exit_code == 0

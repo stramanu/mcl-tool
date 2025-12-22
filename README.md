@@ -20,9 +20,9 @@ A lightweight, batteries-included CLI that makes command automation effortless. 
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | 🎯 **Composable scripts** | Author commands once in JSON and call them from anywhere.                                                         |
 | 🔄 **Args & vars**        | Mix positional placeholders (`$1`, `$2`) with config vars and optional fragments. Use `$$` to escape literal `$`. |
-| 🎲 **Nested flows**       | Navigate structures like `example.date.utc` via `mcl example date utc`.                                           |
+| 🎲 **Nested flows**       | Navigate nested script structures via space notation: `mcl example date utc`. Consistent display and execution. |
 | 🛡️ **Safe execution**     | Dry-run mode, opt-in environment sharing, structured logging.                                                     |
-| 📐 **Developer-friendly** | Strict type hints, 100% test coverage, mypy/black enforced in CI.                                                 |
+| 📐 **Developer-friendly** | Strict type hints, comprehensive test coverage, mypy/black enforced in CI.                                                 |
 | 🔓 **Open source**        | MIT-licensed; fork, adapt, and redistribute freely with attribution.                                              |
 
 ## Installation
@@ -39,7 +39,7 @@ pipx install mcl-tool
 
 If you prefer managing the venv yourself:
 
-1. Ensure Python 3.10+ is available (`python3 --version`).
+1. Ensure Python 3.8+ is available (`python3 --version`).
 2. Create and activate an isolated environment:
    ```bash
    python3 -m venv ~/.venvs/mcl
@@ -78,10 +78,16 @@ If you prefer managing the venv yourself:
    ```
 3. **Run commands**
    ```bash
-   mcl example hello Alice      # -> echo Hello, Alice!
-   mcl example deploy staging  # -> optional arg substituted into '?$1'
-   mcl --dry-run example date utc
-   mcl                        # -> shows available scripts from global + local config
+   mcl                          # Shows interactive menu or list:
+                                # • example hello
+                                # • example deploy
+                                # • example date show
+                                # • example date utc
+   
+   mcl example hello Alice      # Execute with spaces
+   mcl example deploy staging   # Optional arg substituted into '?$1'
+   mcl example date utc         # Nested command
+   mcl --dry-run example date utc  # Dry-run mode
    ```
 
 ## Demo
@@ -108,11 +114,34 @@ If you prefer managing the venv yourself:
 ## Configuration Notes
 
 - Scripts accept strings, ordered lists, or nested objects; comment lines starting with `#` are ignored.
+- **Nested scripts notation**: Scripts are displayed AND executed with space-separated paths (e.g., `example hello`, `docker build`). Use spaces to invoke nested commands.
 - Positional placeholders (`$1`, `$2`, …) map to CLI args; optional placeholders (`?$3`) drop when missing.
 - **Escape syntax**: Use `$$` to output a literal `$` without substitution. For example, `$$1` becomes `$1` in the output (useful when generating shell scripts that use their own parameters).
 - Config vars become substitutions (`$project`) and, with `--share-vars`, exported env vars (`project`, `MCL_ARG_1`, …).
 - Global config lives in `~/.mcl/global-mcl.json`; local `mcl.json` overrides keys during merge.
-- Running `mcl` with no args prints local scripts first (overrides highlighted) and global scripts second for quick discovery.
+- Running `mcl` with no args shows an interactive menu (TTY) or text list with available scripts.
+
+### 🎯 Interactive Subcommand Selection
+
+When you execute a nested command without specifying a subcommand, mcl shows an **interactive menu** in TTY environments:
+
+```bash
+$ mcl docker
+? Select a subcommand for 'docker':
+  ❯ build
+    run
+    stop
+    logs
+```
+
+Navigate with **arrow keys** (↑/↓) and select with **Enter**. Press **Ctrl+C** to cancel.
+
+**Behavior:**
+- **Interactive terminal (TTY)**: Shows an interactive menu with arrow key navigation
+- **Non-interactive** (pipes, scripts, CI/CD): Falls back to error message with available options
+- **Graceful cancellation**: Ctrl+C exits cleanly with a "cancelled by user" message
+
+This feature improves discoverability while maintaining full backward compatibility for automation workflows.
 
 ## Development
 

@@ -8,7 +8,7 @@
 - Added pytest suites covering config merging, executor substitutions, and CLI wiring.
 - Updated development extras to include `pytest-cov` so coverage runs use the documented command.
 - Enabled shorthand invocation (`mcl <script> ...`) by delegating unknown commands to the `run` handler and documented the behavior.
-- Added support for nested script definitions, letting commands reference hierarchical config paths like `example.hello`.
+- Added support for nested script definitions, letting commands reference hierarchical config paths. Scripts are displayed and executed consistently using space notation (e.g., `mcl example hello`).
 - Hardened CLI delegation (direct invocation + nested paths) and expanded CLI tests to cover alias resolution and nested script execution.
 - Added script discovery UX: running `mcl` displays merged script paths; utilities for listing scripts are unit-tested.
 

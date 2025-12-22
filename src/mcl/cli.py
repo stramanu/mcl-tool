@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import logging
+import sys
 from typing import Any, cast
 
 import click
+import questionary
 
 from .commands import extract_script_maps, list_script_paths
 from .config import edit_global, init_local as init_local_config, load_config
@@ -74,10 +76,7 @@ def cli(ctx: click.Context, dry_run: bool, share_vars: bool) -> None:
             ctx.invoke(run, cmd_name=script_name, args=script_args)
             return
 
-        click.echo(ctx.get_help())
-        click.echo(
-            "\nTip: use `mcl run <script>` or shorthand `mcl <script> [args...]`.\n"
-        )
+        # Show interactive menu or script list
         try:
             config = load_config(local=True)
             global_scripts, local_scripts = extract_script_maps(config)
@@ -87,21 +86,58 @@ def cli(ctx: click.Context, dry_run: bool, share_vars: bool) -> None:
             )
             local_set = set(local_paths)
             global_paths = [path for path in global_paths_all if path not in local_set]
+            all_paths = local_paths + global_paths
 
-            if local_paths:
-                click.echo("Local scripts (override global when duplicated):")
-                for path in local_paths:
-                    click.echo(f"  • {path}")
+            if not all_paths:
+                click.echo("⚡ mcl - My Command Line\n")
+                click.echo("No scripts configured yet. Try `mcl init`.")
+                click.echo("Use `mcl --help` for detailed usage information.")
+                return
 
-            if global_paths:
+            # Interactive menu in TTY, text list otherwise
+            if sys.stdin.isatty() and sys.stdout.isatty():
+                # Build choices with visual separation
+                choices: list[Any] = []
                 if local_paths:
-                    click.echo("")
-                click.echo("Global scripts:")
-                for path in global_paths:
-                    click.echo(f"  • {path}")
+                    choices.append(questionary.Separator("=== Local Scripts ==="))
+                    choices.extend(local_paths)
+                if global_paths:
+                    choices.append(questionary.Separator("=== Global Scripts ==="))
+                    choices.extend(global_paths)
 
-            if not local_paths and not global_paths:
-                click.echo("No scripts configured yet. Try `mcl init`.\n")
+                try:
+                    selected = questionary.select(
+                        "⚡ Select a script to run:",
+                        choices=choices,
+                    ).ask()
+
+                    if selected is None:  # User cancelled
+                        return
+
+                    # Execute the selected script
+                    # Split space-separated path into script name and args
+                    parts = selected.split()
+                    if parts:
+                        script_name = parts[0]
+                        script_args = tuple(parts[1:])
+                        ctx.invoke(run, cmd_name=script_name, args=script_args)
+                except KeyboardInterrupt:
+                    return
+            else:
+                # Non-TTY: show text list
+                click.echo("⚡ mcl - My Command Line\n")
+                if local_paths:
+                    click.echo("Local scripts:")
+                    for path in local_paths:
+                        click.echo(f"  • {path}")
+                if global_paths:
+                    if local_paths:
+                        click.echo("")
+                    click.echo("Global scripts:")
+                    for path in global_paths:
+                        click.echo(f"  • {path}")
+                click.echo("\nRun a script: mcl <script> [args...]")
+                click.echo("Use `mcl --help` for detailed usage information.")
         except ValueError as exc:
             click.echo(f"Warning: unable to load config ({exc})", err=True)
 

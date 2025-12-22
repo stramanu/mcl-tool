@@ -20,9 +20,9 @@ def test_list_script_paths_nested() -> None:
     }
     result = list_script_paths(scripts)
     assert result == [
-        "example.date.utc",
-        "example.hello",
-        "example.list",
+        "example date utc",
+        "example hello",
+        "example list",
     ]
 
 

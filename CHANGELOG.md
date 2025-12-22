@@ -1,5 +1,21 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- **Interactive subcommand selection**: When executing a nested command without specifying a subcommand in an interactive terminal (TTY), mcl now displays an interactive menu using `questionary`. Users can navigate with arrow keys and select with Enter.
+- New dependency: `questionary>=2.0` for interactive menus.
+- Three comprehensive tests for interactive menu behavior covering TTY/non-TTY modes and user cancellation.
+- Documentation in `docs/architecture.md` explaining the new interactive feature.
+
+### Changed
+
+- **Simplified default output**: Running `mcl` without arguments now shows an interactive menu in TTY environments or a text list otherwise. Use `mcl --help` for detailed usage information.
+- **Consistent space notation**: Scripts are now displayed AND executed with space-separated paths (e.g., `example hello`, `docker build`) for complete consistency. Previously used dot notation for display only.
+- Non-interactive environments (pipes, scripts, CI/CD) maintain the original error message behavior for backward compatibility.
+- Updated `executor.py` to detect TTY and show interactive menu only when appropriate.
+
 ## [0.3.0] - 2025-11-25
 
 ### Added
@@ -49,7 +65,3 @@
 ### Changed
 
 - Package published as `mcl-tool`; CLI entry point is `mcl`.
-
-## [Unreleased]
-
-- Add Pydantic based configuration validation.

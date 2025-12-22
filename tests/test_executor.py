@@ -98,7 +98,16 @@ def test_execute_supports_nested_scripts(monkeypatch: pytest.MonkeyPatch) -> Non
     assert kwargs["check"] is True
 
 
-def test_execute_nested_requires_valid_subcommand() -> None:
+def test_execute_nested_requires_valid_subcommand(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test that nested scripts without TTY raise an error."""
+    # Mock stdin.isatty() to return False (non-interactive environment)
+    import sys
+
+    monkeypatch.setattr(sys.stdin, "isatty", lambda: False)
+    monkeypatch.setattr(sys.stdout, "isatty", lambda: False)
+
     config = {
         "scripts": {
             "example": {
@@ -108,10 +117,10 @@ def test_execute_nested_requires_valid_subcommand() -> None:
         "vars": {},
     }
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="requires a subcommand"):
         execute(config, "example", [], dry_run=True, share_vars=False)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="has no subcommand"):
         execute(config, "example", ["missing"], dry_run=True, share_vars=False)
 
 

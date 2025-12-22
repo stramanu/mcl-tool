@@ -6,7 +6,10 @@ import logging
 import os
 import re
 import subprocess
+import sys
 from typing import Any, List, Mapping, MutableMapping, Optional, Sequence, Match
+
+import questionary
 
 logger = logging.getLogger(__name__)
 
@@ -55,11 +58,29 @@ def _resolve_script_definition(
 
     while isinstance(current, Mapping):
         if not remaining:
-            available = ", ".join(sorted(str(key) for key in current.keys()))
-            raise ValueError(
-                f"Script '{_format_path(script_name, path)}' requires a subcommand. "
-                f"Available options: {available}"
-            )
+            available_options = sorted(str(key) for key in current.keys())
+
+            # If not in a TTY (e.g., piped input/output), fallback to error message
+            if not sys.stdin.isatty() or not sys.stdout.isatty():
+                available = ", ".join(available_options)
+                raise ValueError(
+                    f"Script '{_format_path(script_name, path)}' requires a subcommand. "
+                    f"Available options: {available}"
+                )
+
+            # Interactive menu selection
+            try:
+                choice = questionary.select(
+                    f"Select a subcommand for '{_format_path(script_name, path)}':",
+                    choices=available_options,
+                ).ask()
+
+                if choice is None:  # User cancelled (Ctrl+C)
+                    raise ValueError("Command cancelled by user")
+
+                remaining.append(choice)
+            except KeyboardInterrupt:
+                raise ValueError("Command cancelled by user") from None
 
         key = remaining.pop(0)
         if key not in current:

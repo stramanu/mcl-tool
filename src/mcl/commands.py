@@ -8,25 +8,25 @@ ScriptTree = Mapping[str, Any]
 
 
 def list_script_paths(scripts: ScriptTree) -> List[str]:
-    """Return dotted command paths from the provided script mapping."""
+    """Return space-separated command paths from the provided script mapping."""
 
     paths: List[str] = []
 
     def _walk(prefix: List[str], node: Any) -> None:
         if isinstance(node, Mapping):
             if not node:
-                paths.append(".".join(prefix))
+                paths.append(" ".join(prefix))
                 return
             for key, child in node.items():
                 _walk(prefix + [str(key)], child)
             return
 
         if isinstance(node, Iterable) and not isinstance(node, (str, bytes)):
-            paths.append(".".join(prefix))
+            paths.append(" ".join(prefix))
             return
 
         if isinstance(node, str):
-            paths.append(".".join(prefix))
+            paths.append(" ".join(prefix))
             return
 
         # unsupported types are ignored; executor will raise at runtime
