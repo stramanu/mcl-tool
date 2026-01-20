@@ -69,6 +69,105 @@ def test_run_reports_value_error(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "Error: boom" in result.output
 
 
+def test_run_script_nested_under_run_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that scripts under a 'run' key can be executed (e.g., 'mcl run service')."""
+    runner = CliRunner()
+    calls: dict[str, Any] = {}
+
+    def fake_load_config(*_, **__):  # type: ignore[no-untyped-def]
+        calls["load_config"] = True
+        return {
+            "scripts": {
+                "run": {
+                    "service": "echo example",
+                    "db": {"start": "echo db start", "stop": "echo db stop"},
+                }
+            },
+            "vars": {},
+        }
+
+    def fake_execute(
+        config: dict[str, Any],
+        cmd: str,
+        args: list[str],
+        dry_run: bool,
+        share_vars: bool,
+    ) -> None:
+        calls.setdefault("execute", []).append(
+            {
+                "config": config,
+                "cmd": cmd,
+                "args": args,
+                "dry_run": dry_run,
+                "share_vars": share_vars,
+            }
+        )
+
+    monkeypatch.setattr(cli_module, "load_config", fake_load_config)
+    monkeypatch.setattr(cli_module, "execute", fake_execute)
+
+    with runner.isolated_filesystem():
+        # Test "mcl run service" - should invoke scripts.run.service
+        result = runner.invoke(cli, ["run", "service"])
+
+    assert result.exit_code == 0
+    assert calls["load_config"] is True
+    execute_calls = calls["execute"]
+    assert len(execute_calls) == 1
+    execute_args = execute_calls[0]
+    # The executor internally remaps to run the nested script
+    assert execute_args["cmd"] == "service"
+    assert execute_args["args"] == []
+
+
+def test_run_nested_script_under_run_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test deeply nested scripts under 'run' key (e.g., 'mcl run db start')."""
+    runner = CliRunner()
+    calls: dict[str, Any] = {}
+
+    def fake_load_config(*_, **__):  # type: ignore[no-untyped-def]
+        calls["load_config"] = True
+        return {
+            "scripts": {
+                "run": {
+                    "db": {"start": "echo db start", "stop": "echo db stop"},
+                }
+            },
+            "vars": {},
+        }
+
+    def fake_execute(
+        config: dict[str, Any],
+        cmd: str,
+        args: list[str],
+        dry_run: bool,
+        share_vars: bool,
+    ) -> None:
+        calls.setdefault("execute", []).append(
+            {
+                "config": config,
+                "cmd": cmd,
+                "args": args,
+                "dry_run": dry_run,
+                "share_vars": share_vars,
+            }
+        )
+
+    monkeypatch.setattr(cli_module, "load_config", fake_load_config)
+    monkeypatch.setattr(cli_module, "execute", fake_execute)
+
+    with runner.isolated_filesystem():
+        # Test "mcl run db start" - should invoke scripts.run.db.start
+        result = runner.invoke(cli, ["run", "db", "start"])
+
+    assert result.exit_code == 0
+    execute_calls = calls["execute"]
+    assert len(execute_calls) == 1
+    execute_args = execute_calls[0]
+    assert execute_args["cmd"] == "db"
+    assert execute_args["args"] == ["start"]
+
+
 def test_init_local_command(monkeypatch: pytest.MonkeyPatch) -> None:
     runner = CliRunner()
     invoked = {"count": 0}

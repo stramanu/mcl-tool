@@ -151,7 +151,17 @@ def execute(
 
     raw_script = scripts.get(cmd_name)
     if raw_script is None:
-        raise ValueError(f"Script '{cmd_name}' is not defined")
+        # Check if the script exists as a nested script under "run" key.
+        # This handles the case where users have scripts like:
+        #   {"scripts": {"run": {"service": "echo example"}}}
+        # and invoke them as "mcl run service", but cli intercepts "run" as command.
+        run_scripts = scripts.get("run")
+        if isinstance(run_scripts, Mapping) and cmd_name in run_scripts:
+            raw_script = run_scripts
+            args = [cmd_name] + list(args)
+            cmd_name = "run"
+        else:
+            raise ValueError(f"Script '{cmd_name}' is not defined")
 
     steps_list, call_args = _resolve_script_definition(raw_script, args, cmd_name)
 

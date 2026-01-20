@@ -219,3 +219,42 @@ def test_multiple_consecutive_dollars() -> None:
     # The first $$ prevents matching, so $1 is not replaced
     # Then $$ becomes $ during unescape
     assert result == ["echo $$1"]
+
+
+def test_execute_script_nested_under_run_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that scripts under a 'run' key can be executed by the executor.
+
+    This tests the bug fix where 'mcl run service' would fail because the CLI
+    command 'run' intercepted the call, passing 'service' as cmd_name instead
+    of the full path 'run.service'.
+    """
+    captured: list[Any] = []
+
+    def fake_run(cmd: Any, **kwargs: Any) -> None:
+        captured.append((cmd, kwargs))
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    config = {
+        "scripts": {
+            "run": {
+                "service": "echo example",
+                "db": {"start": "echo db start"},
+            }
+        },
+        "vars": {},
+    }
+
+    # Test simple nested script under "run"
+    execute(config, "service", [], dry_run=False, share_vars=False)
+    assert captured
+    cmd, kwargs = captured[0]
+    assert cmd == "echo example"
+    assert kwargs["shell"] is True
+
+    # Test deeply nested script under "run"
+    captured.clear()
+    execute(config, "db", ["start"], dry_run=False, share_vars=False)
+    assert captured
+    cmd, kwargs = captured[0]
+    assert cmd == "echo db start"

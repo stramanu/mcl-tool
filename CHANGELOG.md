@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-01-20
+
+### Fixed
+
+- **Scripts under "run" key**: Fixed a bug where scripts nested under a `"run"` key couldn't be executed (e.g., `mcl run service` with config `{"scripts": {"run": {"service": "..."}}}` would fail with "Script 'service' is not defined"). The executor now correctly falls back to checking nested scripts under the `"run"` key when a direct script lookup fails.
+
+## [0.4.0] - 2026-01-15
+
 ### Added
 
 - **Interactive subcommand selection**: When executing a nested command without specifying a subcommand in an interactive terminal (TTY), mcl now displays an interactive menu using `questionary`. Users can navigate with arrow keys and select with Enter.
